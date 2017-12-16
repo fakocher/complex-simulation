@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Burnout simulation</title>
+    <script src="https://unpkg.com/vue"></script>
+</head>
+<body>
+    <div id="app">
+        <div>
+            Stress {{ stress }}
+        </div>
+        <div>
+            Horaires
+        </div>
+        <div>
+            Heures supplémentaires {{ overtime }}
+            <button v-on:click="reduceOvertime" :disabled="overtime === 0">-</button>
+            <button v-on:click="augmentOvertime">+</button>
+        </div>
+        <div>
+            Incompétence {{ incompetence }}
+        </div>
+        <div>
+            Surcompétence {{ overcompetence }}
+        </div>
+        <div>
+            Compétence
+            <button v-on:click="reduceCompetence">-</button>
+            <button v-on:click="augmentCompetence">+</button>
+        </div>
+        <div>
+            Superieur hierarchique
+        </div>
+        <button v-on:click="startSimulation" :disabled="intervalId !== null">Démarrer la simulation</button>
+        <button v-on:click="stopSimulation" :disabled="intervalId === null">Arrêter la simulation</button>
+    </div>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                stress: 0,
+                overtime: 0,
+                incompetence: 0,
+                overcompetence: 0,
+                intervalId: null
+            },
+            methods: {
+                augmentOvertime: function()
+                {
+                    this.overtime++;
+                },
+                reduceOvertime: function()
+                {
+                    if (this.overtime > 0)
+                    {
+                        this.overtime--;
+                    }
+                },
+                augmentCompetence: function()
+                {
+                    if (this.incompetence > 0)
+                    {
+                        this.incompetence --;
+                    }
+                    else
+                    {
+                        this.overcompetence++;
+                    }
+                },
+                reduceCompetence: function()
+                {
+                    if (this.overcompetence > 0)
+                    {
+                        this.overcompetence --;
+                    }
+                    else
+                    {
+                        this.incompetence++;
+                    }
+                },
+                startSimulation: function()
+                {
+                    this.intervalId = setInterval(function ()
+                    {
+                        if(app.overtime === 0 && app.stress !== 0)
+                        {
+                            app.stress = Math.floor(app.stress * 0.7);
+                        }
+                        else
+                        {
+                            app.stress += Math.pow(app.overtime, 2);
+                        }
+
+                        app.overtime += app.incompetence;
+                        app.overtime -= app.overcompetence;
+                        app.overtime -= 1;
+
+                        if (app.overtime < 0)
+                        {
+                            app.overtime = 0;
+                        }
+                    }, 500);
+                },
+                stopSimulation: function()
+                {
+                    clearInterval(this.intervalId);
+
+                    this.intervalId = null;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
