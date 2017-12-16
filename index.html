@@ -94,7 +94,11 @@
 
                         app.overtime += app.incompetence;
                         app.overtime -= app.overcompetence;
-                        app.overtime -= 1;
+
+                        if (app.incompetence === 0 && app.overcompetence === 0)
+                        {
+                            app.overtime = Math.floor(app.overtime * 0.7);
+                        }
 
                         if (app.overtime < 0)
                         {
