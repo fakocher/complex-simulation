@@ -2,37 +2,42 @@
 <html>
 <head>
     <title>Burnout simulation</title>
+
+    <link rel="stylesheet" href="libs/joint.css">
+
     <script src="https://unpkg.com/vue"></script>
+    <script src="libs/lodash.js"></script>
+    <script src="libs/jquery.js"></script>
+    <script src="libs/backbone.js"></script>
+    <script src="libs/joint.js"></script>
 </head>
 <body>
     <div id="app">
-        <div>
-            Stress {{ stress }}
-        </div>
-        <div>
-            Horaires
-        </div>
-        <div>
-            Heures supplémentaires {{ overtime }}
-            <button v-on:click="reduceOvertime" :disabled="overtime === 0">-</button>
-            <button v-on:click="augmentOvertime">+</button>
-        </div>
-        <div>
-            Incompétence {{ incompetence }}
-        </div>
-        <div>
-            Surcompétence {{ overcompetence }}
-        </div>
-        <div>
-            Compétence
-            <button v-on:click="reduceCompetence">-</button>
-            <button v-on:click="augmentCompetence">+</button>
-        </div>
-        <div>
-            Superieur hierarchique
-        </div>
-        <button v-on:click="startSimulation" :disabled="intervalId !== null">Démarrer la simulation</button>
-        <button v-on:click="stopSimulation" :disabled="intervalId === null">Arrêter la simulation</button>
+        <div id="holder"></div>
+        <button v-on:click="reduceOvertime" :disabled="overtime === 0" style="position: absolute; left: 180px; top: 250px">
+            -
+        </button>
+        <button v-on:click="augmentOvertime" style="position: absolute; left: 220px; top: 250px">
+            +
+        </button>
+        <button v-on:click="reduceWorkload" :disabled="workload === 0" style="position: absolute; left: 305px; top: 400px">
+            -
+        </button>
+        <button v-on:click="augmentWorkload" style="position: absolute; left: 345px; top: 400px">
+            +
+        </button>
+        <button v-on:click="reduceCompetence" style="position: absolute; left: 520px; top: 350px">
+            +
+        </button>
+        <button v-on:click="augmentCompetence" style="position: absolute; left: 220px; top: 550px">
+            +
+        </button>
+        <button v-on:click="startSimulation" :disabled="intervalId !== null">
+            Démarrer la simulation
+        </button>
+        <button v-on:click="stopSimulation" :disabled="intervalId === null">
+            Arrêter la simulation
+        </button>
     </div>
 
     <script>
@@ -43,12 +48,15 @@
                 overtime: 0,
                 incompetence: 0,
                 overcompetence: 0,
+                workload: 0,
                 intervalId: null
             },
             methods: {
                 augmentOvertime: function()
                 {
                     this.overtime++;
+
+                    this.drawGraph();
                 },
                 reduceOvertime: function()
                 {
@@ -56,6 +64,23 @@
                     {
                         this.overtime--;
                     }
+
+                    this.drawGraph();
+                },
+                augmentWorkload: function()
+                {
+                    this.workload++;
+
+                    this.drawGraph();
+                },
+                reduceWorkload: function()
+                {
+                    if (this.workload > 0)
+                    {
+                        this.workload--;
+                    }
+
+                    this.drawGraph();
                 },
                 augmentCompetence: function()
                 {
@@ -67,6 +92,8 @@
                     {
                         this.overcompetence++;
                     }
+
+                    this.drawGraph();
                 },
                 reduceCompetence: function()
                 {
@@ -78,9 +105,13 @@
                     {
                         this.incompetence++;
                     }
+
+                    this.drawGraph();
                 },
                 startSimulation: function()
                 {
+                    self = this;
+
                     this.intervalId = setInterval(function ()
                     {
                         if(app.overtime === 0 && app.stress !== 0)
@@ -93,6 +124,7 @@
                         }
 
                         app.overtime += app.incompetence;
+                        app.overtime += app.workload;
                         app.overtime -= app.overcompetence;
 
                         if (app.incompetence === 0 && app.overcompetence === 0)
@@ -104,6 +136,8 @@
                         {
                             app.overtime = 0;
                         }
+
+                        self.drawGraph();
                     }, 500);
                 },
                 stopSimulation: function()
@@ -111,9 +145,124 @@
                     clearInterval(this.intervalId);
 
                     this.intervalId = null;
+                },
+                drawGraph: function ()
+                {
+                    var graph = new joint.dia.Graph;
+
+                    var paper = new joint.dia.Paper({
+                        el: $('#holder'),
+                        width: 600,
+                        height: 600,
+                        model: graph,
+                        gridSize: 1
+                    });
+
+                    var stressBox = new joint.shapes.basic.Rect({
+                        position: { x: 450, y: 100 },
+                        size: { width: 150, height: 60 },
+                        attrs: { rect: { fill: 'white' }, text: { text: 'Stress ' + this.stress, fill: 'black' } }
+                    });
+
+                    var scheduleBox = new joint.shapes.basic.Rect({
+                        position: { x: 100, y: 100 },
+                        size: { width: 100, height: 60 },
+                        attrs: { rect: { fill: 'white' }, text: { text: 'Horaires', fill: 'black' } }
+                    });
+
+                    var overtimeBox = new joint.shapes.basic.Rect({
+                        position: { x: 100, y: 200 },
+                        size: { width: 200, height: 60 },
+                        attrs: { rect: { fill: 'white' }, text: { text: 'Heures suppl. ' + this.overtime, fill: 'black' } }
+                    });
+
+                    var overcompetenceBox = new joint.shapes.basic.Rect({
+                        position: { x: 150, y: 500 },
+                        size: { width: 150, height: 60 },
+                        attrs: { rect: { fill: 'white' }, text: { text: 'Surcompétence ' + this.overcompetence, fill: 'black' } }
+                    });
+
+                    var incompetenceBox = new joint.shapes.basic.Rect({
+                        position: { x: 450, y: 300 },
+                        size: { width: 150, height: 60 },
+                        attrs: { rect: { fill: 'white' }, text: { text: 'Incompétence ' + this.incompetence, fill: 'black' } }
+                    });
+
+                    var bossBox = new joint.shapes.basic.Rect({
+                        position: { x: 400, y: 500 },
+                        size: { width: 200, height: 60 },
+                        attrs: { rect: { fill: 'white' }, text: { text: 'Supérieur hierarchique', fill: 'black' } }
+                    });
+
+                    var workloadBox = new joint.shapes.basic.Rect({
+                        position: { x: 250, y: 350 },
+                        size: { width: 150, height: 60 },
+                        attrs: { rect: { fill: 'white' }, text: { text: 'Charge trav. ' + this.workload, fill: 'black' } }
+                    });
+
+                    var scheduleToStress = new joint.dia.Link({
+                        source: { id: scheduleBox.id },
+                        target: { id: stressBox.id },
+                        attrs: { '.marker-target': { fill: 'black', d: 'M 10 0 L 0 5 L 10 10 z' } }
+                    });
+
+                    var overtimeToSchedule = new joint.dia.Link({
+                        source: { id: overtimeBox.id },
+                        target: { id: scheduleBox.id },
+                        attrs: { '.marker-target': { fill: 'black', d: 'M 10 0 L 0 5 L 10 10 z' } }
+                    });
+
+                    var overcompetenceToOvertime = new joint.dia.Link({
+                        source: { id: overcompetenceBox.id },
+                        target: { id: overtimeBox.id },
+                        attrs: { '.marker-target': { fill: 'black', d: 'M 10 0 L 0 5 L 10 10 z' } }
+                    });
+
+                    var incompetenceToStress = new joint.dia.Link({
+                        source: { id: incompetenceBox.id },
+                        target: { id: stressBox.id },
+                        attrs: { '.marker-target': { fill: 'black', d: 'M 10 0 L 0 5 L 10 10 z' } }
+                    });
+
+                    var workLoadToOvertime = new joint.dia.Link({
+                        source: { id: workloadBox.id },
+                        target: { id: overtimeBox.id },
+                        attrs: { '.marker-target': { fill: 'black', d: 'M 10 0 L 0 5 L 10 10 z' } }
+                    });
+
+                    var bossToWorkload = new joint.dia.Link({
+                        source: { id: bossBox.id },
+                        target: { id: workloadBox.id },
+                        attrs: { '.marker-target': { fill: 'black', d: 'M 10 0 L 0 5 L 10 10 z' } }
+                    });
+
+                    var incompetenceToOvertime = new joint.dia.Link({
+                        source: { id: incompetenceBox.id },
+                        target: { id: overtimeBox.id },
+                        attrs: { '.marker-target': { fill: 'black', d: 'M 10 0 L 0 5 L 10 10 z' } }
+                    });
+
+                    graph.addCells([
+                        stressBox,
+                        scheduleBox,
+                        overtimeBox,
+                        overcompetenceBox,
+                        incompetenceBox,
+                        bossBox,
+                        workloadBox,
+                        scheduleToStress,
+                        overtimeToSchedule,
+                        overcompetenceToOvertime,
+                        incompetenceToStress,
+                        workLoadToOvertime,
+                        bossToWorkload,
+                        incompetenceToOvertime
+                    ]);
                 }
             }
         });
+
+        app.drawGraph();
     </script>
 </body>
 </html>
