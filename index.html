@@ -26,10 +26,10 @@
         <button v-on:click="augmentWorkload" style="position: absolute; left: 345px; top: 400px">
             +
         </button>
-        <button v-on:click="reduceCompetence" style="position: absolute; left: 520px; top: 350px">
+        <button v-on:click="reduceCompetence" style="position: absolute; left: 500px; top: 350px">
             +
         </button>
-        <button v-on:click="augmentCompetence" style="position: absolute; left: 220px; top: 550px">
+        <button v-on:click="augmentCompetence" style="position: absolute; left: 540px; top: 350px">
             +
         </button>
         <button v-on:click="startSimulation" :disabled="intervalId !== null">
@@ -47,7 +47,6 @@
                 stress: 0,
                 overtime: 0,
                 incompetence: 0,
-                overcompetence: 0,
                 workload: 0,
                 intervalId: null
             },
@@ -88,23 +87,12 @@
                     {
                         this.incompetence --;
                     }
-                    else
-                    {
-                        this.overcompetence++;
-                    }
 
                     this.drawGraph();
                 },
                 reduceCompetence: function()
                 {
-                    if (this.overcompetence > 0)
-                    {
-                        this.overcompetence --;
-                    }
-                    else
-                    {
-                        this.incompetence++;
-                    }
+                    this.incompetence++;
 
                     this.drawGraph();
                 },
@@ -125,9 +113,8 @@
 
                         self.overtime += self.incompetence;
                         self.overtime += self.workload;
-                        self.overtime -= self.overcompetence;
 
-                        if (self.incompetence === 0 && self.overcompetence === 0)
+                        if (self.incompetence === 0)
                         {
                             self.overtime = Math.floor(self.overtime * 0.7);
                         }
@@ -204,12 +191,6 @@
                         attrs: { rect: { fill: overtimeColor }, text: { text: 'Heures suppl. ' + this.overtime, fill: 'black' } }
                     });
 
-                    var overcompetenceBox = new joint.shapes.basic.Rect({
-                        position: { x: 150, y: 500 },
-                        size: { width: 150, height: 60 },
-                        attrs: { rect: { fill: 'white' }, text: { text: 'Surcompétence ' + this.overcompetence, fill: 'black' } }
-                    });
-
                     var incompetenceBox = new joint.shapes.basic.Rect({
                         position: { x: 450, y: 300 },
                         size: { width: 150, height: 60 },
@@ -237,12 +218,6 @@
                     var overtimeToSchedule = new joint.dia.Link({
                         source: { id: overtimeBox.id },
                         target: { id: scheduleBox.id },
-                        attrs: { '.marker-target': { fill: 'black', d: 'M 10 0 L 0 5 L 10 10 z' } }
-                    });
-
-                    var overcompetenceToOvertime = new joint.dia.Link({
-                        source: { id: overcompetenceBox.id },
-                        target: { id: overtimeBox.id },
                         attrs: { '.marker-target': { fill: 'black', d: 'M 10 0 L 0 5 L 10 10 z' } }
                     });
 
@@ -274,13 +249,11 @@
                         stressBox,
                         scheduleBox,
                         overtimeBox,
-                        overcompetenceBox,
                         incompetenceBox,
                         bossBox,
                         workloadBox,
                         scheduleToStress,
                         overtimeToSchedule,
-                        overcompetenceToOvertime,
                         incompetenceToStress,
                         workLoadToOvertime,
                         bossToWorkload,
