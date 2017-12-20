@@ -114,27 +114,27 @@
 
                     this.intervalId = setInterval(function ()
                     {
-                        if(app.overtime === 0 && app.stress !== 0)
+                        if(self.overtime === 0 && self.stress !== 0)
                         {
-                            app.stress = Math.floor(app.stress * 0.7);
+                            self.stress = Math.floor(self.stress * 0.7);
                         }
                         else
                         {
-                            app.stress += Math.pow(app.overtime, 2);
+                            self.stress = Math.pow(self.overtime, 2);
                         }
 
-                        app.overtime += app.incompetence;
-                        app.overtime += app.workload;
-                        app.overtime -= app.overcompetence;
+                        self.overtime += self.incompetence;
+                        self.overtime += self.workload;
+                        self.overtime -= self.overcompetence;
 
-                        if (app.incompetence === 0 && app.overcompetence === 0)
+                        if (self.incompetence === 0 && self.overcompetence === 0)
                         {
-                            app.overtime = Math.floor(app.overtime * 0.7);
+                            self.overtime = Math.floor(self.overtime * 0.7);
                         }
 
-                        if (app.overtime < 0)
+                        if (self.overtime < 0)
                         {
-                            app.overtime = 0;
+                            self.overtime = 0;
                         }
 
                         self.drawGraph();
@@ -155,13 +155,29 @@
                         width: 600,
                         height: 600,
                         model: graph,
-                        gridSize: 1
+                        gridSize: 1,
+                        interactive: false
                     });
+
+                    paper.$el.css('pointer-events', 'none');
+
+                    var stressColor = 'white';
+
+                    if (this.stress > 1000)
+                    {
+                        stressColor = 'yellow';
+                    }
+
+                    if (this.stress > 10000)
+                    {
+                        stressColor = 'red';
+                    }
+
 
                     var stressBox = new joint.shapes.basic.Rect({
                         position: { x: 450, y: 100 },
                         size: { width: 150, height: 60 },
-                        attrs: { rect: { fill: 'white' }, text: { text: 'Stress ' + this.stress, fill: 'black' } }
+                        attrs: { rect: { fill: stressColor }, text: { text: 'Stress ' + this.stress, fill: 'black' } }
                     });
 
                     var scheduleBox = new joint.shapes.basic.Rect({
@@ -170,10 +186,22 @@
                         attrs: { rect: { fill: 'white' }, text: { text: 'Horaires', fill: 'black' } }
                     });
 
+                    var overtimeColor = 'white';
+
+                    if (this.overtime > 20)
+                    {
+                        overtimeColor = 'yellow';
+                    }
+
+                    if (this.overtime > 100)
+                    {
+                        overtimeColor = 'red';
+                    }
+
                     var overtimeBox = new joint.shapes.basic.Rect({
                         position: { x: 100, y: 200 },
                         size: { width: 200, height: 60 },
-                        attrs: { rect: { fill: 'white' }, text: { text: 'Heures suppl. ' + this.overtime, fill: 'black' } }
+                        attrs: { rect: { fill: overtimeColor }, text: { text: 'Heures suppl. ' + this.overtime, fill: 'black' } }
                     });
 
                     var overcompetenceBox = new joint.shapes.basic.Rect({
